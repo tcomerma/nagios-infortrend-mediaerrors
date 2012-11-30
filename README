@@ -1,0 +1,38 @@
+check_infortrend_mediaerrors
+
+Author: Toni Comerma
+Date: nov-2012
+Licence: GPL
+
+Objective:
+After losing a volume due to undetected media errors in an Infortrend device, we decided to keep
+an eye on these errors. We are monitoring these devices using Erinn Looney Triggs excelent plugin
+http://gitorious.org/smarmy/check_infortrend but this doesn't detect these errors (because they
+only show up in the event log).
+
+So I created this nagios plugin that scans the event log for media errors
+
+Problem 1: The event log is cleared after a reboot, so you lose track of previous error.
+Approach: The plugin records on disc the errors, avoiding the problem. But after changing a disc, you must
+   manually clear the errors using 
+     check_infortrend_mediaerrors.sh -H hostname -x
+	 
+Problem 2: Some old devices are extremely slow, taking up to 2 minutes to answer.
+Approach: To avoid blocking nagios, the plugin can fork the check in background using -s. This gives time to
+    the plugin to complete. In the first execution will allways retung OK, and at the second one will find out
+	errors from the previous execution
+
+
+Requirements:
+  - smptable
+  - Infortrend MIBs
+
+Usage: 
+check_infortrend_mediaerrors.sh -H <host> -w <warning> -c <critical> -v -s -x -h
+   -v Verbose
+   -H <host> Storage device address 
+   -w <warning> Raise warning if more than <warning> number of errors per drive.
+   -c <critical> Raise warning if more than <critical> number of errors per drive. 
+   -s Spawn check process. Usefull for slow devices when used from nagios, to avoid timeouts
+   -x Clear stored errors for <host>
+   -h This message
